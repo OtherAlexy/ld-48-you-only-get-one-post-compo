@@ -156,7 +156,10 @@ var GameState = {
 				if ((
 					( (this.blocks[i].x < this.swarm[j].x) && (this.swarm[j].x < (this.blocks[i].w + this.blocks[i].x))) &&
 					( (this.blocks[i].y < this.swarm[j].y) && (this.swarm[j].y < (this.blocks[i].h + this.blocks[i].y)))
-				   ))
+				   )
+				   ||
+				   ((this.swarm[j].y < 0 || this.swarm[j].y > real_canvas.height) && !this.end)
+				   )
 				 {
 					ts[j] = true;
 				 }
@@ -218,6 +221,8 @@ var GameState = {
 			
 			this.swarm[i].x += this.swarm[i].dx;
 			this.swarm[i].y += this.swarm[i].dy;
+			
+			
 		}
 	},
 	
