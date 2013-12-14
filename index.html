@@ -1,6 +1,134 @@
 <html>
 <title>You only get one to exit</title>
-<body>
-<canvas></canvas>
+<body style="margin: 0;" onresize="onResize();">
+<canvas style="margin: 0;" id="main_canv" width="1" height="1"></canvas>
+<script type="text/javascript">
+var can = document.getElementById('main_canv');
+var ctx = can.getContext("2d");
+
+var square_width = 8;
+var square_height = 8;
+var SCREEN_WIDTH = 20;
+var SCREEN_HEIGHT = 18;
+
+var screen_dx = 0;
+var screen_dy = 0;
+var screen_multiplier = 1;
+
+var WINDOW_WIDTH = 0;
+var WINDOW_HEIGHT = 0;
+
+var MenuState = {
+	init: function()
+	{
+		this.yoge_angle = 0;
+		this.pak_angle = 0;
+	},
+	
+	process: function()
+	{
+		this.yoge_angle += 0.01;
+		this.pak_angle -= 0.07;
+	},
+	
+	draw: function(ctx)
+	{
+		ctx.save();
+		ctx.textBaseline = "middle";
+		ctx.textAlign = "center";
+		ctx.translate(SCREEN_WIDTH * square_width /2, SCREEN_HEIGHT * square_height / 3);
+		ctx.rotate(this.yoge_angle);
+		ctx.fillText("You only get only one to exit", 0, 0);
+		ctx.restore();
+		
+		ctx.save();
+		ctx.textBaseline = "middle";
+		ctx.textAlign = "center";
+		ctx.translate(SCREEN_WIDTH * square_width /2, SCREEN_HEIGHT * square_height / 2);
+		ctx.rotate(this.pak_angle);
+		ctx.fillText("Press any key", 0, 0);
+		ctx.restore();
+	}
+}
+
+var Game = {
+	dt: new Date(),
+	fps: 1000 / 30,
+	time_debt: 0,
+	
+	state: MenuState,
+	
+	process: function()
+	{
+		nd = new Date();
+		dt = nd - this.dt;
+		this.dt = nd;
+		
+		this.time_debt += dt;
+		
+		while (this.time_debt > this.fps)
+		{
+			this.time_debt -= this.fps;
+			this.state.process();
+		}
+	},
+	
+	draw: function(ctx)
+	{
+		ctx.beginPath();
+		ctx.rect(0, 0, SCREEN_WIDTH * square_width, SCREEN_HEIGHT * square_height);
+		ctx.stroke();
+		
+		this.state.draw(ctx);
+	},
+	
+	set_state: function (state)
+	{
+		state.init();
+		this.state = state;
+	}
+}
+
+function onDraw()
+{
+	can.width = WINDOW_WIDTH;
+	can.height = WINDOW_HEIGHT;
+	
+	ctx.translate(screen_dx, screen_dy);
+	ctx.scale(screen_multiplier, screen_multiplier);
+	
+	Game.draw(ctx);
+}
+
+function onResize()
+{
+	WINDOW_WIDTH = window.innerWidth;
+	WINDOW_HEIGHT = window.innerHeight;
+	
+	for (screen_multiplier = 2; (SCREEN_WIDTH*square_width*screen_multiplier <= WINDOW_WIDTH) && (SCREEN_HEIGHT*square_height*screen_multiplier <= WINDOW_HEIGHT) ; screen_multiplier++)
+		continue;
+	screen_multiplier--;
+	
+	screen_dx = (WINDOW_WIDTH - SCREEN_WIDTH*square_width*screen_multiplier) / 2;
+	screen_dy = (WINDOW_HEIGHT - SCREEN_HEIGHT*square_height*screen_multiplier) / 2;
+}
+
+function setup()
+{
+	Game.set_state(MenuState);
+}
+
+function run()
+{
+	Game.process();
+	onDraw();
+	window.setTimeout(run, 1);
+}
+
+onResize();
+
+setup();
+run();
+</script>
 </body>
 </html>
