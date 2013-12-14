@@ -6,6 +6,9 @@
 var can = document.getElementById('main_canv');
 var ctx = can.getContext("2d");
 
+var real_canvas = document.createElement('canvas');
+var real_ctx = real_canvas.getContext("2d");
+
 var square_width = 8;
 var square_height = 8;
 var SCREEN_WIDTH = 20;
@@ -17,6 +20,9 @@ var screen_multiplier = 1;
 
 var WINDOW_WIDTH = 0;
 var WINDOW_HEIGHT = 0;
+
+real_canvas.width = SCREEN_WIDTH * square_width;
+real_canvas.height = SCREEN_HEIGHT * square_height;
 
 var MenuState = {
 	init: function()
@@ -97,7 +103,9 @@ function onDraw()
 	ctx.translate(screen_dx, screen_dy);
 	ctx.scale(screen_multiplier, screen_multiplier);
 	
-	Game.draw(ctx);
+	real_canvas.width = real_canvas.width;
+	Game.draw(real_ctx);
+	ctx.drawImage(real_canvas, 0, 0);
 }
 
 function onResize()
