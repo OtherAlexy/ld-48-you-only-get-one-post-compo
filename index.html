@@ -43,7 +43,8 @@ var BadGameOver = {
 		{
 			if (!Game.is_key_pressed())
 			{
-				
+				console.log('to menu');
+				Game.set_state(MenuState);
 			}
 		}
 	},
@@ -83,6 +84,8 @@ var GameState = {
 
 	init: function()
 	{
+		this.plX = real_canvas.width / 2;
+		this.plY = real_canvas.height / 2;
 		for (var i = 0; i < 20; i++)
 		{
 			this.swarm.push({x: this.plX + Math.random() * 20 - 10, y: this.plY + Math.random() * 20 - 10, dx: 0, dy: 0});
