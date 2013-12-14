@@ -1,6 +1,6 @@
 <html>
 <title>You only get one to exit</title>
-<body style="margin: 0;" onresize="onResize();">
+<body style="margin: 0;" onresize="onResize();" onkeydown="onKeyDown(event);" onkeyup="onKeyUp(event);">
 <canvas style="margin: 0;" id="main_canv" width="1" height="1"></canvas>
 <script type="text/javascript">
 var can = document.getElementById('main_canv');
@@ -24,6 +24,87 @@ var WINDOW_HEIGHT = 0;
 real_canvas.width = SCREEN_WIDTH * square_width;
 real_canvas.height = SCREEN_HEIGHT * square_height;
 
+var GameState = {
+
+	keys: 0,
+
+	init: function()
+	{
+	
+	},
+	
+	process: function()
+	{
+	
+	},
+	
+	draw: function(ctx)
+	{
+	
+	},
+	
+	key_down: function()
+	{
+		this.keys++;
+	},
+	
+	key_up: function()
+	{
+		if (this.keys > 0)
+		{
+			keys --;
+		}
+	}
+}
+
+var MenuToGameState = {
+	init: function()
+	{
+		this.d = 0;
+		this.c = 0;
+	},
+	
+	process: function()
+	{
+		MenuState.process(ctx);
+		
+		this.c = (this.c + 1) % 1;
+		
+		if (this.c == 0) 
+			{
+			if (this.d < 256)
+			{
+				this.d += 2;
+			}
+			else
+			{
+				if (!Game.is_key_pressed())
+				{
+					Game.set_state(GameState);
+				}
+			}
+		}
+		console.log(this.d);
+	},
+	
+	key_down: function()
+	{
+	
+	},
+	
+	key_up: function()
+	{
+	
+	},
+	
+	draw: function(ctx)
+	{
+		MenuState.draw(ctx);
+		ctx.fillStyle="rgba(0,0,0,"+(this.d / 256)+ ")"; //
+		ctx.fillRect(0, 0, real_canvas.width, real_canvas.height);
+	}
+}
+
 var MenuState = {
 	init: function()
 	{
@@ -35,6 +116,18 @@ var MenuState = {
 	{
 		this.yoge_angle += 0.01;
 		this.pak_angle -= 0.07;
+	},
+	
+	key_down: function(code)
+	{
+		console.log('kd', code);
+		
+		Game.set_state(MenuToGameState);
+	},
+	
+	key_up: function(code)
+	{
+		console.log('ku', code);
 	},
 	
 	draw: function(ctx)
@@ -63,6 +156,36 @@ var Game = {
 	time_debt: 0,
 	
 	state: MenuState,
+	
+	keys: [],
+	
+	key_down: function(code)
+	{
+		if (!this.keys[code])
+		{
+				this.state.key_down(code);
+		}
+		this.keys[code] = true;
+	},
+	
+	key_up: function(code)
+	{
+		this.keys[code] = false;
+		this.state.key_up(code);
+	},
+	
+	is_key_pressed: function ()
+	{
+		for (var i in this.keys)
+		{
+			if (this.keys[i])
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	},
 	
 	process: function()
 	{
@@ -119,6 +242,16 @@ function onResize()
 	
 	screen_dx = (WINDOW_WIDTH - SCREEN_WIDTH*square_width*screen_multiplier) / 2;
 	screen_dy = (WINDOW_HEIGHT - SCREEN_HEIGHT*square_height*screen_multiplier) / 2;
+}
+
+function onKeyUp(event)
+{
+	Game.key_up(event.keyCode);
+}
+
+function onKeyDown(event)
+{
+	Game.key_down(event.keyCode);
 }
 
 function setup()
