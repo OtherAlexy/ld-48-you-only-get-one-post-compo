@@ -41,10 +41,71 @@ var GameState = {
 		{
 			this.swarm.push({x: this.plX + Math.random() * 20 - 10, y: this.plY + Math.random() * 20 - 10, dx: 0, dy: 0});
 		}
+		
+		this.step = 0;
+		this.dy = 0;
+		this.level = 4;
+		
+		this.blocks = [];
 	},
+	
+	step: 0,
+	level: 1,
+	
+	blocks: [],
 	
 	process: function()
 	{
+		// add blocks;
+		this.step += 1;
+		
+		if (this.step % square_width == 0)
+		{
+			for (var i = 0; i < this.level; i++)
+			{
+				this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height})
+				
+				this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height})
+			}
+		}
+		
+		// move blocks and swarm
+		var tb = [];
+		var ts = [];
+		for (var i in this.blocks)
+		{
+			this.blocks[i].x -= 1;
+			
+			if (this.blocks[i].x > - square_width)
+			{
+				tb.push(this.blocks[i]);
+			}
+			
+			for (var j in this.swarm)
+			{
+				if ((
+					( (this.blocks[i].x < this.swarm[j].x) && (this.swarm[j].x < (this.blocks[i].w + this.blocks[i].x))) &&
+					( (this.blocks[i].y < this.swarm[j].y) && (this.swarm[j].y < (this.blocks[i].h + this.blocks[i].y)))
+				   ))
+				 {
+					ts[j] = true;
+				 }
+			}
+		}
+		
+		var tmps  = [];
+		for (var j in this.swarm)
+		{
+			if (!ts[j])
+			{
+				tmps.push(this.swarm[j]);
+			}
+		}
+		
+		this.swarm = tmps;
+		this.blocks = tb;
+		
+		// move spot
 		if (!Game.is_key_pressed())
 		{
 			this.dy += .1;
@@ -86,9 +147,17 @@ var GameState = {
 	
 	draw: function(ctx)
 	{
-		// black background
-		ctx.fillStyle="rgb(0,0,0)";
+		// bluue background
+		ctx.fillStyle="rgb(0,0,128)";
 		ctx.fillRect(0,0,real_canvas.width, real_canvas.height);
+		
+		// blocks:
+		ctx.fillStyle="rgb(0,255,0)";
+		console.log(this.blocks.length)
+		for (var i in this.blocks)
+		{	
+			ctx.fillRect(this.blocks[i].x, this.blocks[i].y, this.blocks[i].w, this.blocks[i].h);
+		}
 		
 		// spot
 		ctx.fillStyle="rgba(255,0,0, 0.5)";		
@@ -97,9 +166,10 @@ var GameState = {
 		
 		// fleas
 		ctx.strokeStyle="#FFFF66";
-		for (var i = 0; i < 20; i++)
+		for (var i in this.swarm)
 		{
 			ctx.beginPath();
+			console.log(this.swarm[i]);
 			ctx.moveTo(this.swarm[i].x, this.swarm[i].y);
 			ctx.lineTo(this.swarm[i].x+1, this.swarm[i].y)
 			ctx.stroke();
@@ -131,23 +201,17 @@ var MenuToGameState = {
 	{
 		MenuState.process(ctx);
 		
-		this.c = (this.c + 1) % 1;
-		
-		if (this.c == 0) 
+		if (this.d < 256)
+		{
+			this.d += 4;
+		}
+		else
+		{
+			if (!Game.is_key_pressed())
 			{
-			if (this.d < 256)
-			{
-				this.d += 2;
-			}
-			else
-			{
-				if (!Game.is_key_pressed())
-				{
-					Game.set_state(GameState);
-				}
+				Game.set_state(GameState);
 			}
 		}
-		console.log(this.d);
 	},
 	
 	key_down: function()
