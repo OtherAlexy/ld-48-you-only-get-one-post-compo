@@ -27,20 +27,83 @@ real_canvas.height = SCREEN_HEIGHT * square_height;
 var GameState = {
 
 	keys: 0,
+	
+	swarm: [],
+	
+	plX: real_canvas.width / 2,
+	plY: real_canvas.height / 2,
+	
+	dy: 0,
 
 	init: function()
 	{
-	
+		for (var i = 0; i < 20; i++)
+		{
+			this.swarm.push({x: this.plX + Math.random() * 20 - 10, y: this.plY + Math.random() * 20 - 10, dx: 0, dy: 0});
+		}
 	},
 	
 	process: function()
 	{
-	
+		if (!Game.is_key_pressed())
+		{
+			this.dy += .1;
+		}
+		else
+		{
+			this.dy -= .2;
+		}
+		
+		this.plY += this.dy;
+		
+		// move swarm to spot:
+		for (var i in this.swarm)
+		{
+			if (this.swarm[i].x > this.plX)
+			{
+				this.swarm[i].dx -= .1;
+			}
+			
+			if (this.swarm[i].x < this.plX)
+			{
+				this.swarm[i].dx += .1;
+			}
+			
+			if (this.swarm[i].y > this.plY)
+			{
+				this.swarm[i].dy -= .1;
+			}
+			
+			if (this.swarm[i].y < this.plY)
+			{
+				this.swarm[i].dy += .1;
+			}
+			
+			this.swarm[i].x += this.swarm[i].dx;
+			this.swarm[i].y += this.swarm[i].dy;
+		}
 	},
 	
 	draw: function(ctx)
 	{
-	
+		// black background
+		ctx.fillStyle="rgb(0,0,0)";
+		ctx.fillRect(0,0,real_canvas.width, real_canvas.height);
+		
+		// spot
+		ctx.fillStyle="rgba(255,0,0, 0.5)";		
+		ctx.fillRect(this.plX - 3, this.plY - 3, 6, 6);
+		
+		
+		// fleas
+		ctx.strokeStyle="#FFFF66";
+		for (var i = 0; i < 20; i++)
+		{
+			ctx.beginPath();
+			ctx.moveTo(this.swarm[i].x, this.swarm[i].y);
+			ctx.lineTo(this.swarm[i].x+1, this.swarm[i].y)
+			ctx.stroke();
+		}
 	},
 	
 	key_down: function()
@@ -52,7 +115,7 @@ var GameState = {
 	{
 		if (this.keys > 0)
 		{
-			keys --;
+			this.keys --;
 		}
 	}
 }
