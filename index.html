@@ -24,11 +24,57 @@ var WINDOW_HEIGHT = 0;
 real_canvas.width = SCREEN_WIDTH * square_width;
 real_canvas.height = SCREEN_HEIGHT * square_height;
 
+var BadGameOver = {
+	d: 0,
+	init: function()
+	{
+		console.log('badgm');
+		this.d = 0;
+	},
+	
+	process: function()
+	{
+		GameState.process();
+		if (this.d < 1.0)
+		{
+			this.d += 3 / 256;
+		}
+		else
+		{
+			if (!Game.is_key_pressed())
+			{
+				
+			}
+		}
+	},
+	
+	key_up: function()
+	{
+		GameState.key_up();
+	},
+	
+	key_down: function()
+	{
+		GameState.key_down();
+	},
+	
+	draw: function(ctx)
+	{
+		GameState.draw(ctx);
+		
+		ctx.fillStyle="rgba(0,0,0,"+ this.d+")";
+		ctx.fillRect(0,0, real_canvas.width, real_canvas.height);
+	},
+}
+
 var GameState = {
 
+	end: false,
 	keys: 0,
 	
 	swarm: [],
+	
+	max_d: 2.5,
 	
 	plX: real_canvas.width / 2,
 	plY: real_canvas.height / 2,
@@ -44,9 +90,10 @@ var GameState = {
 		
 		this.step = 0;
 		this.dy = 0;
-		this.level = 4;
+		this.level = 1	;
 		
 		this.blocks = [];
+		this.end = false;
 	},
 	
 	step: 0,
@@ -56,18 +103,38 @@ var GameState = {
 	
 	process: function()
 	{
-		// add blocks;
+		// game over?
+		if (this.swarm.length == 0 && !this.end)
+		{
+			this.end = true;
+			Game.set_state(BadGameOver);
+		}
+		
 		this.step += 1;
 		
-		if (this.step % square_width == 0)
-		{
-			for (var i = 0; i < this.level; i++)
+		// add blocks;
+			// Add walls
+			if (this.step % square_width == 0)
 			{
-				this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height})
-				
-				this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height})
+				for (var i = 0; i < this.level; i++)
+				{
+					this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height})
+					
+					this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height})
+				}
 			}
-		}
+			
+			// free blocks
+			if (this.step % (square_width * 5) == 0)
+			{
+				this.blocks.push({x: real_canvas.width, y: Math.random() * real_canvas.height, w: square_width, h: square_height})
+			}
+			
+		// add level:
+			if (this.step % (square_width * 90) == 0)
+			{
+				this.level += 1;
+			}
 		
 		// move blocks and swarm
 		var tb = [];
@@ -123,21 +190,27 @@ var GameState = {
 			if (this.swarm[i].x > this.plX)
 			{
 				this.swarm[i].dx -= .1;
+				
+				if (this.swarm[i].dx < - this.max_d) this.swarm[i].dx = -this.max_d
 			}
 			
 			if (this.swarm[i].x < this.plX)
 			{
 				this.swarm[i].dx += .1;
+				
+				if (this.swarm[i].dx > this.max_d) this.swarm[i].dx = this.max_d
 			}
 			
 			if (this.swarm[i].y > this.plY)
 			{
 				this.swarm[i].dy -= .1;
+				if (this.swarm[i].dy < - this.max_d) this.swarm[i].dy = -this.max_d
 			}
 			
 			if (this.swarm[i].y < this.plY)
 			{
 				this.swarm[i].dy += .1;
+				if (this.swarm[i].dy > this.max_d) this.swarm[i].dy = this.max_d
 			}
 			
 			this.swarm[i].x += this.swarm[i].dx;
@@ -153,7 +226,6 @@ var GameState = {
 		
 		// blocks:
 		ctx.fillStyle="rgb(0,255,0)";
-		console.log(this.blocks.length)
 		for (var i in this.blocks)
 		{	
 			ctx.fillRect(this.blocks[i].x, this.blocks[i].y, this.blocks[i].w, this.blocks[i].h);
@@ -169,7 +241,6 @@ var GameState = {
 		for (var i in this.swarm)
 		{
 			ctx.beginPath();
-			console.log(this.swarm[i]);
 			ctx.moveTo(this.swarm[i].x, this.swarm[i].y);
 			ctx.lineTo(this.swarm[i].x+1, this.swarm[i].y)
 			ctx.stroke();
@@ -247,14 +318,12 @@ var MenuState = {
 	
 	key_down: function(code)
 	{
-		console.log('kd', code);
-		
 		Game.set_state(MenuToGameState);
 	},
 	
 	key_up: function(code)
 	{
-		console.log('ku', code);
+		
 	},
 	
 	draw: function(ctx)
