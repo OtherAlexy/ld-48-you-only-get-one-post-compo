@@ -11,6 +11,12 @@ var real_ctx = real_canvas.getContext("2d");
 
 var sprites = new Image();
 
+var hit = document.createElement('audio');
+var win = document.createElement('audio');
+
+hit.src = "snd/hit.wav";
+win.src = "snd/win.wav"
+
 sprites.src = "img/sprites.png"
 
 var square_width = 8;
@@ -250,7 +256,14 @@ var GameState = {
 			else
 			{
 				if (this.swarm[j].escaped)
+				{
 					this.is_escaped += 1;
+					win.play();
+				}
+				else
+				{
+					hit.play();
+				}
 			}
 		}
 		
@@ -385,10 +398,7 @@ var MenuToGameState = {
 		}
 		else
 		{
-			if (!Game.is_key_pressed())
-			{
-				Game.set_state(GameState);
-			}
+			Game.set_state(GameState);
 		}
 	},
 	
