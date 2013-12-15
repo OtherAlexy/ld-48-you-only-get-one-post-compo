@@ -9,6 +9,10 @@ var ctx = can.getContext("2d");
 var real_canvas = document.createElement('canvas');
 var real_ctx = real_canvas.getContext("2d");
 
+var sprites = new Image();
+
+sprites.src = "img/sprites.png"
+
 var square_width = 8;
 var square_height = 8;
 var SCREEN_WIDTH = 20;
@@ -24,11 +28,10 @@ var WINDOW_HEIGHT = 0;
 real_canvas.width = SCREEN_WIDTH * square_width;
 real_canvas.height = SCREEN_HEIGHT * square_height;
 
-var BadGameOver = {
+var GoodGameOver = {
 	d: 0,
 	init: function()
 	{
-		console.log('badgm');
 		this.d = 0;
 	},
 	
@@ -41,11 +44,46 @@ var BadGameOver = {
 		}
 		else
 		{
-			if (!Game.is_key_pressed())
-			{
-				console.log('to menu');
-				Game.set_state(MenuState);
-			}
+			Game.set_state(MenuState);
+		}
+	},
+	
+	key_up: function()
+	{
+		GameState.key_up();
+	},
+	
+	key_down: function()
+	{
+		GameState.key_down();
+	},
+	
+	draw: function(ctx)
+	{
+		GameState.draw(ctx);
+		
+		ctx.fillStyle="rgba(255,255,255,"+ this.d+")";
+		ctx.fillRect(0,0, real_canvas.width, real_canvas.height);
+	},
+}
+
+var BadGameOver = {
+	d: 0,
+	init: function()
+	{
+		this.d = 0;
+	},
+	
+	process: function()
+	{
+		GameState.process();
+		if (this.d < 1.0)
+		{
+			this.d += 3 / 256;
+		}
+		else
+		{
+			Game.set_state(MenuState);
 		}
 	},
 	
@@ -68,6 +106,7 @@ var BadGameOver = {
 	},
 }
 
+
 var GameState = {
 
 	end: false,
@@ -81,9 +120,18 @@ var GameState = {
 	plY: real_canvas.height / 2,
 	
 	dy: 0,
+	
+	start_of_the_end: 5,
+	
+	where_end_is: null,
+	
+	is_escaped: 0,
 
 	init: function()
 	{
+		this.where_end_is = null,
+		this.is_escaped = 0,
+		
 		this.plX = real_canvas.width / 2;
 		this.plY = real_canvas.height / 2;
 		for (var i = 0; i < 20; i++)
@@ -93,7 +141,7 @@ var GameState = {
 		
 		this.step = 0;
 		this.dy = 0;
-		this.level = 1	;
+		this.level = 1;
 		
 		this.blocks = [];
 		this.end = false;
@@ -108,11 +156,29 @@ var GameState = {
 	
 	process: function()
 	{
+	
+		if (this.level >= this.start_of_the_end)
+		{
+			if (this.where_end_is == null)
+			{
+				this.where_end_is = real_canvas.width;
+			}
+			
+			this.where_end_is -= 1;
+		}
+	
 		// game over?
 		if (this.swarm.length == 0 && !this.end)
 		{
 			this.end = true;
-			Game.set_state(BadGameOver);
+			if (!this.is_escaped)
+			{
+				Game.set_state(BadGameOver);
+			}
+			else
+			{
+				Game.set_state(GoodGameOver);
+			}
 		}
 		
 		this.step += 1;
@@ -123,16 +189,16 @@ var GameState = {
 			{
 				for (var i = 0; i < this.level; i++)
 				{
-					this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height})
+					this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
 					
-					this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height})
+					this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
 				}
 			}
 			
 			// free blocks
 			if (this.step % (square_width * 5) == 0)
 			{
-				this.blocks.push({x: real_canvas.width, y: Math.random() * real_canvas.height, w: square_width, h: square_height})
+				this.blocks.push({x: real_canvas.width, y: Math.random() * real_canvas.height, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
 			}
 			
 		// add level:
@@ -165,6 +231,12 @@ var GameState = {
 				 {
 					ts[j] = true;
 				 }
+				 
+				 if (this.where_end_is!= null && this.swarm[j].x > this.where_end_is)
+				 {
+					this.swarm[j].escaped = true;
+					ts[j] =true;
+				 }
 			}
 		}
 		
@@ -175,6 +247,11 @@ var GameState = {
 			{
 				tmps.push(this.swarm[j]);
 			}
+			else
+			{
+				if (this.swarm[j].escaped)
+					this.is_escaped += 1;
+			}
 		}
 		
 		this.swarm = tmps;
@@ -184,10 +261,16 @@ var GameState = {
 		if (!Game.is_key_pressed())
 		{
 			this.dy += .1;
+			
+			if (this.dy > this.max_d)
+				this.dy = this.max_d;
 		}
 		else
 		{
 			this.dy -= .2;
+			
+			if (this.dy < - this.max_d)
+				this.dy = - this.max_d;
 		}
 		
 		this.plY += this.dy;
@@ -230,7 +313,7 @@ var GameState = {
 	
 	draw: function(ctx)
 	{
-		// bluue background
+		// blue background
 		ctx.fillStyle="rgb(0,0,128)";
 		ctx.fillRect(0,0,real_canvas.width, real_canvas.height);
 		
@@ -238,22 +321,36 @@ var GameState = {
 		ctx.fillStyle="rgb(0,255,0)";
 		for (var i in this.blocks)
 		{	
-			ctx.fillRect(this.blocks[i].x, this.blocks[i].y, this.blocks[i].w, this.blocks[i].h);
+			var t = this.blocks[i].t * 8;
+			//ctx.fillRect(this.blocks[i].x, this.blocks[i].y, this.blocks[i].w, this.blocks[i].h);
+			ctx.drawImage(sprites, t, 0, 8, 8, this.blocks[i].x, this.blocks[i].y, 8, 8);
+		}
+		
+		// END:
+		ctx.fillStyle="rgba(255,0, 0, 0.4)";
+		if (this.where_end_is != null)
+		{
+			ctx.fillRect(this.where_end_is, 0, real_canvas.width * 2, real_canvas.height);
 		}
 		
 		// spot
 		ctx.fillStyle="rgba(255,0,0, 0.5)";		
-		ctx.fillRect(this.plX - 3, this.plY - 3, 6, 6);
+		//ctx.fillRect(this.plX - 3, this.plY - 3, 6, 6);
+		ctx.drawImage(sprites, 16, 8, 8, 8, this.plX - 4, this.plY - 4, 8, 8);
 		
 		
 		// fleas
 		ctx.strokeStyle="#FFFF66";
 		for (var i in this.swarm)
 		{
+			/*
 			ctx.beginPath();
 			ctx.moveTo(this.swarm[i].x, this.swarm[i].y);
 			ctx.lineTo(this.swarm[i].x+1, this.swarm[i].y)
 			ctx.stroke();
+			*/
+			var t = Math.floor(Math.random()*2);
+			ctx.drawImage(sprites, t, 8, 8, 8, this.swarm[i].x - 4, this.swarm[i].y - 4, 8, 8);
 		}
 	},
 	
@@ -343,8 +440,21 @@ var MenuState = {
 		ctx.textAlign = "center";
 		ctx.translate(SCREEN_WIDTH * square_width /2, SCREEN_HEIGHT * square_height / 3);
 		ctx.rotate(this.yoge_angle);
-		ctx.fillText("You only get one to exit", 0, 0);
+		
+		var t = "You only get one to exit";
+		var c = "rgb(0,0,0)";
+		
+		if (GameState.is_escaped > 0)
+		{
+			var t = "Congratulations! You only get " + GameState.is_escaped + " to exit!";
+			var c = "rgb(128,0,0)";
+		}
+		
+		ctx.fillStyle = c;
+		ctx.fillText(t, 0, 0);
 		ctx.restore();
+		
+		ctx.fillStyle = "black";
 		
 		ctx.save();
 		ctx.textBaseline = "middle";
