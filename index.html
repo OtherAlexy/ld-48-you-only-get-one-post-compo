@@ -212,7 +212,8 @@ var GameState = {
 			{
 				this.level += 1;
 			}
-		
+			
+		// move blocks and swarm
 		// move blocks and swarm
 		var tb = [];
 		var ts = [];
@@ -365,6 +366,15 @@ var GameState = {
 			var t = Math.floor(Math.random()*2);
 			ctx.drawImage(sprites, t, 8, 8, 8, this.swarm[i].x - 4, this.swarm[i].y - 4, 8, 8);
 		}
+		
+		// calc_progress:
+		// square_width * 90
+		var cp = this.step / (square_width * 90 * (this.start_of_the_end - 1));
+		
+		ctx.fillStyle = "white";
+		ctx.fillRect(3,3,real_canvas.width - 6, 3);
+		
+		ctx.drawImage(sprites, 16, 8, 8, 8, 3 + (real_canvas.width - 6) * cp, 3, 6, 6);
 	},
 	
 	key_down: function()
@@ -469,9 +479,26 @@ var MenuState = {
 		ctx.save();
 		ctx.textBaseline = "middle";
 		ctx.textAlign = "center";
-		ctx.translate(SCREEN_WIDTH * square_width /2, SCREEN_HEIGHT * square_height / 2);
+		ctx.translate(SCREEN_WIDTH * square_width /3, SCREEN_HEIGHT * square_height / 2);
 		ctx.rotate(this.pak_angle);
+		ctx.fillStyle = "blue";
 		ctx.fillText("Press any key", 0, 0);
+		ctx.restore();
+		
+		// instructions
+		ctx.save();
+		ctx.textBaseline = "middle";
+		ctx.textAlign = "center";
+		ctx.translate(SCREEN_WIDTH * square_width - SCREEN_WIDTH * square_width / 3 + Math.sin(this.pak_angle) * 10, SCREEN_HEIGHT * square_height / 2);
+		//ctx.rotate(this.pak_angle);
+		ctx.fillStyle="green";
+		ctx.fillText("Press any key to", 0, 0);
+		ctx.fillText("move up. Release", 0, 10);
+		ctx.fillText("key to move down.", 0, 20);
+		ctx.fillText("Sprites will die if", 0, 30);
+		ctx.fillText("they will touch the", 0, 40);
+		ctx.fillText("walls. Bring at last", 0, 50);
+		ctx.fillText("one to exit.", 0, 60);
 		ctx.restore();
 	}
 }
