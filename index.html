@@ -1,6 +1,6 @@
 <html>
 <title>You only get one to exit</title>
-<body style="margin: 0;" onresize="onResize();" onkeydown="onKeyDown(event);" onkeyup="onKeyUp(event);">
+<body style="margin: 0;">
 <canvas style="margin: 0;" id="main_canv" width="1" height="1"></canvas>
 <script type="text/javascript">
 var can = document.getElementById('main_canv');
@@ -40,7 +40,7 @@ var GoodGameOver = {
 	{
 		this.d = 0;
 	},
-	
+
 	process: function()
 	{
 		GameState.process();
@@ -53,21 +53,21 @@ var GoodGameOver = {
 			Game.set_state(MenuState);
 		}
 	},
-	
+
 	key_up: function()
 	{
 		GameState.key_up();
 	},
-	
+
 	key_down: function()
 	{
 		GameState.key_down();
 	},
-	
+
 	draw: function(ctx)
 	{
 		GameState.draw(ctx);
-		
+
 		ctx.fillStyle="rgba(255,255,255,"+ this.d+")";
 		ctx.fillRect(0,0, real_canvas.width, real_canvas.height);
 	},
@@ -79,7 +79,7 @@ var BadGameOver = {
 	{
 		this.d = 0;
 	},
-	
+
 	process: function()
 	{
 		GameState.process();
@@ -92,21 +92,21 @@ var BadGameOver = {
 			Game.set_state(MenuState);
 		}
 	},
-	
+
 	key_up: function()
 	{
 		GameState.key_up();
 	},
-	
+
 	key_down: function()
 	{
 		GameState.key_down();
 	},
-	
+
 	draw: function(ctx)
 	{
 		GameState.draw(ctx);
-		
+
 		ctx.fillStyle="rgba(0,0,0,"+ this.d+")";
 		ctx.fillRect(0,0, real_canvas.width, real_canvas.height);
 	},
@@ -117,62 +117,62 @@ var GameState = {
 
 	end: false,
 	keys: 0,
-	
+
 	swarm: [],
-	
+
 	max_d: 2.5,
-	
+
 	plX: real_canvas.width / 2,
 	plY: real_canvas.height / 2,
-	
+
 	dy: 0,
-	
+
 	start_of_the_end: 5,
-	
+
 	where_end_is: null,
-	
+
 	is_escaped: 0,
 
 	init: function()
 	{
 		this.where_end_is = null,
 		this.is_escaped = 0,
-		
+
 		this.plX = real_canvas.width / 2;
 		this.plY = real_canvas.height / 2;
 		for (var i = 0; i < 20; i++)
 		{
 			this.swarm.push({x: this.plX + Math.random() * 20 - 10, y: this.plY + Math.random() * 20 - 10, dx: 0, dy: 0});
 		}
-		
+
 		this.step = 0;
 		this.dy = 0;
 		this.level = 1;
-		
+
 		this.blocks = [];
 		this.end = false;
-		
+
 		this.keys = 0;
 	},
-	
+
 	step: 0,
 	level: 1,
-	
+
 	blocks: [],
-	
+
 	process: function()
 	{
-	
+
 		if (this.level >= this.start_of_the_end)
 		{
 			if (this.where_end_is == null)
 			{
 				this.where_end_is = real_canvas.width;
 			}
-			
+
 			this.where_end_is -= 1;
 		}
-	
+
 		// game over?
 		if (this.swarm.length == 0 && !this.end)
 		{
@@ -186,9 +186,9 @@ var GameState = {
 				Game.set_state(GoodGameOver);
 			}
 		}
-		
+
 		this.step += 1;
-		
+
 		// add blocks;
 			// Add walls
 			if (this.step % square_width == 0)
@@ -196,23 +196,23 @@ var GameState = {
 				for (var i = 0; i < this.level; i++)
 				{
 					this.blocks.push({x: real_canvas.width, y: square_height * i, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
-					
+
 					this.blocks.push({x: real_canvas.width, y: real_canvas.height - square_height - square_height * i, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
 				}
 			}
-			
+
 			// free blocks
 			if (this.step % (square_width * 5) == 0)
 			{
 				this.blocks.push({x: real_canvas.width, y: Math.random() * real_canvas.height, w: square_width, h: square_height, t: Math.floor(Math.random()*3)})
 			}
-			
+
 		// add level:
 			if (this.step % (square_width * 90) == 0)
 			{
 				this.level += 1;
 			}
-			
+
 		// move blocks and swarm
 		// move blocks and swarm
 		var tb = [];
@@ -220,12 +220,12 @@ var GameState = {
 		for (var i in this.blocks)
 		{
 			this.blocks[i].x -= 1;
-			
+
 			if (this.blocks[i].x > - square_width)
 			{
 				tb.push(this.blocks[i]);
 			}
-			
+
 			for (var j in this.swarm)
 			{
 				if ((
@@ -238,7 +238,7 @@ var GameState = {
 				 {
 					ts[j] = true;
 				 }
-				 
+
 				 if (this.where_end_is!= null && this.swarm[j].x > this.where_end_is)
 				 {
 					this.swarm[j].escaped = true;
@@ -246,7 +246,7 @@ var GameState = {
 				 }
 			}
 		}
-		
+
 		var tmps  = [];
 		for (var j in this.swarm)
 		{
@@ -267,121 +267,115 @@ var GameState = {
 				}
 			}
 		}
-		
+
 		this.swarm = tmps;
 		this.blocks = tb;
-		
+
 		// move spot
 		if (!Game.is_key_pressed())
 		{
 			this.dy += .1;
-			
+
 			if (this.dy > this.max_d)
 				this.dy = this.max_d;
 		}
 		else
 		{
 			this.dy -= .2;
-			
+
 			if (this.dy < - this.max_d)
 				this.dy = - this.max_d;
 		}
-		
+
 		this.plY += this.dy;
-		
+
 		// move swarm to spot:
 		for (var i in this.swarm)
 		{
 			if (this.swarm[i].x > this.plX)
 			{
 				this.swarm[i].dx -= .1;
-				
+
 				if (this.swarm[i].dx < - this.max_d) this.swarm[i].dx = -this.max_d
 			}
-			
+
 			if (this.swarm[i].x < this.plX)
 			{
 				this.swarm[i].dx += .1;
-				
+
 				if (this.swarm[i].dx > this.max_d) this.swarm[i].dx = this.max_d
 			}
-			
+
 			if (this.swarm[i].y > this.plY)
 			{
 				this.swarm[i].dy -= .1;
 				if (this.swarm[i].dy < - this.max_d) this.swarm[i].dy = -this.max_d
 			}
-			
+
 			if (this.swarm[i].y < this.plY)
 			{
 				this.swarm[i].dy += .1;
 				if (this.swarm[i].dy > this.max_d) this.swarm[i].dy = this.max_d
 			}
-			
+
 			this.swarm[i].x += this.swarm[i].dx;
 			this.swarm[i].y += this.swarm[i].dy;
-			
-			
+
+
 		}
 	},
-	
+
 	draw: function(ctx)
 	{
 		// blue background
 		ctx.fillStyle="rgb(0,0,0)";
 		ctx.fillRect(0,0,real_canvas.width, real_canvas.height);
-		
+
 		// blocks:
 		ctx.fillStyle="rgb(0,255,0)";
 		for (var i in this.blocks)
-		{	
+		{
 			var t = this.blocks[i].t * 8;
 			//ctx.fillRect(this.blocks[i].x, this.blocks[i].y, this.blocks[i].w, this.blocks[i].h);
-			ctx.drawImage(sprites, t, 0, 8, 8, this.blocks[i].x, this.blocks[i].y, 8, 8);
+			ctx.drawImage(sprites, t, 0, 8, 8, Math.floor(this.blocks[i].x), Math.floor(this.blocks[i].y), 8, 8);
 		}
-		
+
 		// END:
 		ctx.fillStyle="rgba(255,0, 0, 0.4)";
 		if (this.where_end_is != null)
 		{
 			ctx.fillRect(this.where_end_is, 0, real_canvas.width * 2, real_canvas.height);
 		}
-		
+
 		// spot
-		ctx.fillStyle="rgba(255,0,0, 0.5)";		
+		ctx.fillStyle="rgba(255,0,0, 0.5)";
 		//ctx.fillRect(this.plX - 3, this.plY - 3, 6, 6);
-		ctx.drawImage(sprites, 16, 8, 8, 8, this.plX - 4, this.plY - 4, 8, 8);
-		
-		
+		ctx.drawImage(sprites, 16, 8, 8, 8, Math.floor(this.plX - 4), Math.floor(this.plY - 4), 8, 8);
+
+
 		// fleas
 		ctx.strokeStyle="#FFFF66";
 		for (var i in this.swarm)
 		{
-			/*
-			ctx.beginPath();
-			ctx.moveTo(this.swarm[i].x, this.swarm[i].y);
-			ctx.lineTo(this.swarm[i].x+1, this.swarm[i].y)
-			ctx.stroke();
-			*/
 			var t = Math.floor(Math.random()*2);
-			ctx.drawImage(sprites, t, 8, 8, 8, this.swarm[i].x - 4, this.swarm[i].y - 4, 8, 8);
+			ctx.drawImage(sprites, t, 8, 8, 8, Math.floor(this.swarm[i].x - 4), Math.floor(this.swarm[i].y - 4), 8, 8);
 		}
-		
+
 		// calc_progress:
 		// square_width * 90
 		var cp = this.step / (square_width * 90 * (this.start_of_the_end - 1));
-		
+
 		ctx.fillStyle = "white";
 		ctx.fillRect(3,3,real_canvas.width - 6, 3);
-		
-		ctx.drawImage(sprites, 16, 8, 8, 8, 3 + (real_canvas.width - 6) * cp, 3, 6, 6);
+
+		ctx.drawImage(sprites, 16, 8, 8, 8, Math.floor(3 + (real_canvas.width - 6) * cp), 3, 6, 6);
 	},
-	
+
 	key_down: function()
 	{
 		this.keys++;
 	},
-	
+
 	key_up: function()
 	{
 		if (this.keys > 0)
@@ -397,11 +391,11 @@ var MenuToGameState = {
 		this.d = 0;
 		this.c = 0;
 	},
-	
+
 	process: function()
 	{
 		MenuState.process(ctx);
-		
+
 		if (this.d < 256)
 		{
 			this.d += 4;
@@ -411,17 +405,17 @@ var MenuToGameState = {
 			Game.set_state(GameState);
 		}
 	},
-	
+
 	key_down: function()
 	{
-	
+
 	},
-	
+
 	key_up: function()
 	{
-	
+
 	},
-	
+
 	draw: function(ctx)
 	{
 		MenuState.draw(ctx);
@@ -436,23 +430,23 @@ var MenuState = {
 		this.yoge_angle = 0;
 		this.pak_angle = 0;
 	},
-	
+
 	process: function()
 	{
 		this.yoge_angle += 0.01;
 		this.pak_angle -= 0.07;
 	},
-	
+
 	key_down: function(code)
 	{
 		Game.set_state(MenuToGameState);
 	},
-	
+
 	key_up: function(code)
 	{
-		
+
 	},
-	
+
 	draw: function(ctx)
 	{
 		ctx.save();
@@ -460,22 +454,22 @@ var MenuState = {
 		ctx.textAlign = "center";
 		ctx.translate(SCREEN_WIDTH * square_width /2, SCREEN_HEIGHT * square_height / 3);
 		ctx.rotate(this.yoge_angle);
-		
+
 		var t = "You only get one to exit";
 		var c = "rgb(0,0,0)";
-		
+
 		if (GameState.is_escaped > 0)
 		{
 			var t = "Congratulations! You only get " + GameState.is_escaped + " to exit!";
 			var c = "rgb(128,0,0)";
 		}
-		
+
 		ctx.fillStyle = c;
 		ctx.fillText(t, 0, 0);
 		ctx.restore();
-		
+
 		ctx.fillStyle = "black";
-		
+
 		ctx.save();
 		ctx.textBaseline = "middle";
 		ctx.textAlign = "center";
@@ -484,7 +478,7 @@ var MenuState = {
 		ctx.fillStyle = "blue";
 		ctx.fillText("Press any key", 0, 0);
 		ctx.restore();
-		
+
 		// instructions
 		ctx.save();
 		ctx.textBaseline = "middle";
@@ -507,11 +501,11 @@ var Game = {
 	dt: new Date(),
 	fps: 1000 / 30,
 	time_debt: 0,
-	
+
 	state: MenuState,
-	
+
 	keys: [],
-	
+
 	key_down: function(code)
 	{
 		if (!this.keys[code])
@@ -520,13 +514,13 @@ var Game = {
 		}
 		this.keys[code] = true;
 	},
-	
+
 	key_up: function(code)
 	{
 		this.keys[code] = false;
 		this.state.key_up(code);
 	},
-	
+
 	is_key_pressed: function ()
 	{
 		for (var i in this.keys)
@@ -536,34 +530,34 @@ var Game = {
 				return true;
 			}
 		}
-		
+
 		return false;
 	},
-	
+
 	process: function()
 	{
 		nd = new Date();
 		dt = nd - this.dt;
 		this.dt = nd;
-		
+
 		this.time_debt += dt;
-		
+
 		while (this.time_debt > this.fps)
 		{
 			this.time_debt -= this.fps;
 			this.state.process();
 		}
 	},
-	
+
 	draw: function(ctx)
 	{
 		ctx.beginPath();
 		ctx.rect(0, 0, SCREEN_WIDTH * square_width, SCREEN_HEIGHT * square_height);
 		ctx.stroke();
-		
+
 		this.state.draw(ctx);
 	},
-	
+
 	set_state: function (state)
 	{
 		state.init();
@@ -575,10 +569,10 @@ function onDraw()
 {
 	can.width = WINDOW_WIDTH;
 	can.height = WINDOW_HEIGHT;
-	
+
 	ctx.translate(screen_dx, screen_dy);
 	ctx.scale(screen_multiplier, screen_multiplier);
-	
+
 	real_canvas.width = real_canvas.width;
 	Game.draw(real_ctx);
 	ctx.drawImage(real_canvas, 0, 0);
@@ -588,13 +582,16 @@ function onResize()
 {
 	WINDOW_WIDTH = window.innerWidth;
 	WINDOW_HEIGHT = window.innerHeight;
-	
+
 	for (screen_multiplier = 2; (SCREEN_WIDTH*square_width*screen_multiplier <= WINDOW_WIDTH) && (SCREEN_HEIGHT*square_height*screen_multiplier <= WINDOW_HEIGHT) ; screen_multiplier++)
 		continue;
 	screen_multiplier--;
-	
-	screen_dx = (WINDOW_WIDTH - SCREEN_WIDTH*square_width*screen_multiplier) / 2;
-	screen_dy = (WINDOW_HEIGHT - SCREEN_HEIGHT*square_height*screen_multiplier) / 2;
+
+	screen_dx = (WINDOW_WIDTH - SCREEN_WIDTH * square_width * screen_multiplier) / 2;
+	screen_dy = (WINDOW_HEIGHT - SCREEN_HEIGHT * square_height * screen_multiplier) / 2;
+
+	real_ctx.imageSmoothingEnabled = false;
+	ctx.imageSmoothingEnabled = false;
 }
 
 function onKeyUp(event)
@@ -607,8 +604,45 @@ function onKeyDown(event)
 	Game.key_down(event.keyCode);
 }
 
+function onMouseUp(event)
+{
+	Game.key_up("mouse");
+}
+
+function onMouseDown(event)
+{
+	Game.key_down("mouse");
+}
+
+function onTouchStart(event)
+{
+	Game.key_up("touch");
+}
+
+function onTouchEnd(event)
+{
+	Game.key_down("touch");
+}
+
+function onBlur(event) {
+
+}
+
 function setup()
 {
+	window.addEventListener("blur", onBlur);
+	window.addEventListener("resize", onResize);
+	window.addEventListener("keydown", onKeyDown);
+	window.addEventListener("keyup", onKeyUp);
+
+	window.addEventListener("mousedown", onMouseDown);
+	window.addEventListener("mouseup", onMouseUp);
+
+	window.addEventListener("touchstart", onTouchStart);
+	window.addEventListener("touchend", onTouchEnd);
+
+	onResize();
+
 	Game.set_state(MenuState);
 }
 
@@ -618,8 +652,6 @@ function run()
 	onDraw();
 	window.setTimeout(run, 1);
 }
-
-onResize();
 
 setup();
 run();
